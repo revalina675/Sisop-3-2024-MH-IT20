@@ -120,7 +120,11 @@ void log_history(char *operation, char *num1_str, char *num2_str, char *result_s
         strcpy(upper_operation, "BAGI");
     }
 
+    if (strcmp(result_str, "ERROR") == 0) {
+    fprintf(log_file, "[%s] [%s] ERROR pada %s.\n", timestamp, upper_operation, argv + 1);
+} else {
     fprintf(log_file, "[%s] [%s] %s %s %s sama dengan %s.\n", timestamp, upper_operation, num1_str, argv + 1, num2_str, result_str);
+}
 
     fclose(log_file);
 }
@@ -197,17 +201,17 @@ int main(int argc, char *argv[]) {
         // Close write end of pipe
         close(pipefd[1]);
 
-// Read result from child process
-char result[100];
-read(pipefd[0], result, sizeof(result));
+        // Read result from child process
+        char result[100];
+        read(pipefd[0], result, sizeof(result));
 
-// Close read end of pipe
-close(pipefd[0]);
+        // Close read end of pipe
+        close(pipefd[0]);
 
-// Log history
+        // Log history
 log_history(argv[1], num1_str, num2_str, result, argv[1]);
 
-// Print result with quotes
+        // Print result with quotes
 if (strcmp(argv[1], "-kali") == 0) {
     printf("\"Hasil perkalian %s dan %s adalah %s.\"\n", num1_str, num2_str, result);
 } else if (strcmp(argv[1], "-tambah") == 0) {
