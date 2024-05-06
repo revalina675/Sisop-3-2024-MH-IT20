@@ -5,7 +5,7 @@
 #include <pthread.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
-#include <sys/wait.h> // Menambahkan header untuk wait
+#include <sys/wait.h> 
 #include <unistd.h>
 
 #define SHARED_MEM_KEY 1234
