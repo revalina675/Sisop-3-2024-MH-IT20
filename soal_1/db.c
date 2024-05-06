@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <dirent.h> 
+#include <dirent.h>
 #include <sys/ipc.h>
 #include <sys/shm.h>
 #include <unistd.h>
