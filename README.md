@@ -719,3 +719,11 @@ soal_4/
         └── server.c
 
 ## Jawab
+
+Langkah pertama adalah mendownload file `myanimelist.csv` pada link Google Drive yang tersedia dengan command
+```
+wget https://drive.google.com/file/d/10p_kzuOgaFY3WT6FVPJIXFbkej2s9f50/view?usp=drive_link
+```
+
+Berikut ini adalah isi dari file `myanimelist.csv`
+[gambar isi file csv]
