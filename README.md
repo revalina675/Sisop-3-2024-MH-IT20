@@ -349,10 +349,11 @@ f. Karena Lewis juga ingin track anime yang ditambah, diubah, dan dihapus. Maka 
 g. Koneksi antara client dan server tidak akan terputus jika ada kesalahan input dari client, cuma terputus jika user mengirim pesan “exit”. Program exit dilakukan pada sisi client.
 
 h. Hasil akhir:
+`
 soal_4/
     ├── change.log
     ├── client/
     │   └── client.c
     ├── myanimelist.csv
     └── server/
-        └── server.c
+        └── server.c`
