@@ -313,6 +313,359 @@ untuk menampilkannya.
 
 ## Soal 3
 
+Shall Leglerg🥶 dan Carloss Signs 😎 adalah seorang pembalap F1 untuk tim Ferrari 🥵. Mobil F1 memiliki banyak pengaturan, seperti penghematan ERS, Fuel, Tire Wear dan lainnya. Pada minggu ini ada race di sirkuit Silverstone. Malangnya, seluruh tim Ferrari diracun oleh Super Max Max pada hari sabtu sehingga seluruh kru tim Ferrari tidak bisa membantu Shall Leglerg🥶 dan Carloss Signs 😎 dalam race. Namun, kru Ferrari telah menyiapkan program yang bisa membantu mereka dalam menyelesaikan race secara optimal. Program yang dibuat bisa mengatur pengaturan - pengaturan dalam mobil F1 yang digunakan dalam balapan. Programnya ber ketentuan sebagai berikut:
+
+a. Pada program actions.c, program akan berisi function function yang bisa di call oleh paddock.c
+
+b. Action berisikan sebagai berikut:
+
+- Gap [Jarak dengan driver di depan (float)]: Jika Jarak antara Driver dengan Musuh di depan adalah < 3.5s maka return Gogogo, jika jarak > 3.5s dan 10s return Push, dan jika jarak > 10s maka return Stay out of trouble.
+- Fuel [Sisa Bensin% (string/int/float)]: Jika bensin lebih dari 80% maka return Push Push Push, jika bensin di antara 50% dan 80% maka return You can go, dan jika bensin kurang dari 50% return Conserve Fuel.
+- Tire [Sisa Ban (int)]: Jika pemakaian ban lebih dari 80 maka return Go Push Go Push, jika pemakaian ban diantara 50 dan 80 return Good Tire Wear, jika pemakaian di antara 30 dan 50 return Conserve Your Tire, dan jika pemakaian ban kurang dari 30 maka return Box Box Box.
+- Tire Change [Tipe ban saat ini (string)]: Jika tipe ban adalah Soft return Mediums Ready, dan jika tipe ban Medium return Box for Softs.
+
+Contoh:
+
+[Driver] : [Fuel] [55%]
+[Paddock]: [You can go]
+
+c. Pada paddock.c program berjalan secara daemon di background, bisa terhubung dengan driver.c melalui socket RPC.
+
+d. Program paddock.c dapat call function yang berada di dalam actions.c.
+
+e. Program paddock.c tidak keluar/terminate saat terjadi error dan akan log semua percakapan antara paddock.c dan driver.c di dalam file race.log
+
+Format log:
+
+[Source] [DD/MM/YY hh:mm:ss]: [Command] [Additional-info]
+
+ex :
+
+[Driver] [07/04/2024 08:34:50]: [Fuel] [55%]
+
+[Paddock] [07/04/2024 08:34:51]: [Fuel] [You can go]
+
+f. Program driver.c bisa terhubung dengan paddock.c dan bisa mengirimkan pesan dan menerima pesan serta menampilan pesan tersebut dari paddock.c sesuai dengan perintah atau function call yang diberikan.
+
+g. Jika bisa digunakan antar device/os (non local) akan diberi nilai tambahan.
+
+h. untuk mengaktifkan RPC call dari driver.c, bisa digunakan in-program CLI atau Argv (bebas) yang penting bisa send command seperti poin B dan menampilkan balasan dari paddock.c
+		
+ex:
+
+Argv: 
+
+./driver -c Fuel -i 55% 
+
+in-program CLI:
+
+Command: Fuel
+
+Info: 55%
+
+
+Contoh direktori 😶‍🌫️:
+
+.		.
+
+├── client
+
+│   └── driver.c
+
+└── server
+
+  ├── actions.c
+    
+  ├── paddock.c
+    
+  └── race.log
+
+## Jawab
+
+Pada soal tersebut, awalnya kita disuruh untuk membuat 3 program, yaitu `actions.c`, `paddock.c`, dan `driver.c`.
+
+Dimana `paddock.` adalah server, dan `driver.c` adalah client.
+
+Berikut saya lampiran konfigurasi code untuk program-program tersebut
+
+*actions.c*
+
+```
+#include <stdio.h>
+#include <string.h>
+
+char* Gap(float distance) {
+    if (distance < 3.5)
+        return "Gogogo";
+    else if (distance >= 3.5 && distance <= 10)
+        return "Push";
+    else
+        return "Stay out of trouble";
+}
+
+char* Fuel(int percent) {
+    if (percent > 80)
+        return "Push Push Push";
+    else if (percent >= 50 && percent <= 80)
+        return "You can go";
+    else
+        return "Conserve Fuel";
+}
+
+char* Tire(int wear) {
+    if (wear > 80)
+        return "Go Push Go Push";
+    else if (wear >= 50 && wear <= 80)
+        return "Good Tire Wear";
+    else if (wear >= 30 && wear < 50)
+        return "Conserve Your Tire";
+    else
+        return "Box Box Box";
+}
+
+char* TireChange(char* current_type) {
+    if (strcmp(current_type, "Soft") == 0)
+        return "Mediums Ready";
+    else if (strcmp(current_type, "Medium") == 0)
+        return "Box for Softs";
+    else
+        return "Unknown tire type";
+}
+```
+
+`Gap` : mengembalikan saran kepada pembalap berdasarkan jarak yang diukur. Jika jarak kurang dari 3.5, saran adalah "Gogogo", jika antara 3.5 dan 10, saran adalah "Push", dan jika lebih dari 10, saran adalah "Stay out of trouble".
+
+`Fuel ` : memberikan saran kepada pembalap berdasarkan persentase bahan bakar yang tersisa. Jika lebih dari 80%, saran adalah "Push Push Push", jika antara 50% dan 80%, saran adalah "You can go", dan jika kurang dari 50%, saran adalah "Conserve Fuel".
+
+`Tire` : memberikan saran kepada pembalap berdasarkan keausan ban. Jika lebih dari 80%, saran adalah "Go Push Go Push", jika antara 50% dan 80%, saran adalah "Good Tire Wear", jika antara 30% dan kurang dari 50%, saran adalah "Conserve Your Tire", dan jika kurang dari 30%, saran adalah "Box Box Box".
+
+`TireChange` : memberikan saran kepada tim balap tentang pergantian jenis ban yang tepat berdasarkan jenis ban yang saat ini digunakan. Jika ban saat ini adalah "Soft", saran adalah "Mediums Ready", jika "Medium", saran adalah "Box for Softs", dan jika jenis ban tidak dikenali, saran adalah "Unknown tire type".
+
+*paddock.c*
+
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/stat.h>
+#include <syslog.h>
+#include <signal.h>
+#include "actions.c"
+
+#define PORT 8080
+
+void error(const char *msg) {
+    perror(msg);
+    exit(1);
+}
+
+void daemonize() {
+    pid_t pid, sid;
+    pid = fork();
+    if (pid < 0) {
+        exit(EXIT_FAILURE);
+    }
+    if (pid > 0) {
+        exit(EXIT_SUCCESS);
+    }
+
+    umask(0);
+
+    sid = setsid();
+    if (sid < 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    if ((chdir("/")) < 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    close(STDIN_FILENO);
+    close(STDOUT_FILENO);
+    close(STDERR_FILENO);
+}
+
+void handle_sigchld(int sig) {
+    // Do nothing to avoid zombie processes
+}
+
+int main() {
+    int sockfd, newsockfd;
+    socklen_t clilen;
+    struct sockaddr_in serv_addr, cli_addr;
+    int n;
+    char buffer[256];
+
+    daemonize();
+
+    // Setup signal handler for SIGCHLD
+    signal(SIGCHLD, handle_sigchld);
+
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
+        error("ERROR opening socket");
+
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = INADDR_ANY;
+    serv_addr.sin_port = htons(PORT);
+
+    if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+        error("ERROR on binding");
+
+    listen(sockfd, 5);
+    clilen = sizeof(cli_addr);
+
+    while (1) {
+        newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+        if (newsockfd < 0)
+            error("ERROR on accept");
+
+        pid_t pid = fork();
+        if (pid == 0) {  // Child process
+            close(sockfd);
+
+            bzero(buffer, 256);
+            n = read(newsockfd, buffer, 255);
+            if (n < 0) error("ERROR reading from socket");
+            printf("Received message: %s\n", buffer);
+
+            char *token = strtok(buffer, " ");
+            char *command = token;
+            token = strtok(NULL, " ");
+            char *value = token;
+
+            // Process command
+            char* response;
+            if (strcmp(command, "Gap") == 0)
+                response = Gap(atof(value));
+            else if (strcmp(command, "Fuel") == 0)
+                response = Fuel(atoi(value));
+            else if (strcmp(command, "Tire") == 0)
+                response = Tire(atoi(value));
+            else if (strcmp(command, "TireChange") == 0)
+                response = TireChange(value);
+            else
+                response = "Invalid command";
+
+            // Send response
+            n = write(newsockfd, response, strlen(response));
+            if (n < 0) error("ERROR writing to socket");
+
+            close(newsockfd);
+            exit(EXIT_SUCCESS);
+        } else if (pid < 0) {
+            error("ERROR on fork");
+        } else {
+            close(newsockfd);
+        }
+    }
+
+    close(sockfd);
+    return 0;
+}
+```
+
+`error` : digunakan untuk menampilkan pesan kesalahan dan keluar dari program dengan kode kesalahan.
+
+`daemonize()` : mengubah proses utama menjadi daemon, yaitu proses yang berjalan di latar belakang. Ini melibatkan pembuatan proses baru, mengatur SID, mengubah direktori kerja, serta menutup file descriptor standar.
+
+`handle_sigchld` : untuk penanganan sinyal untuk SIGCHLD. Tujuannya adalah untuk mencegah proses menjadi proses zombie setelah selesai.
+
+`main` : merupakan fungsi utama program, dimana dilakukan inisialisasi socket, melakukan binding, dan mendengarkan permintaan koneksi dari klien. Ketika koneksi diterima, server akan membuat proses anak untuk menangani koneksi tersebut. Proses anak akan membaca permintaan dari klien, memprosesnya, dan mengirimkan respons kembali ke klien. Proses induk akan melanjutkan menerima koneksi dari klien lainnya.
+
+*driver.c*
+
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+
+#define PORT 8080
+
+void error(const char *msg) {
+    perror(msg);
+    exit(1);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc != 5 || strcmp(argv[1], "-c") != 0 || strcmp(argv[3], "-i") != 0) {
+        fprintf(stderr, "Usage: %s -c [Command] -i [Value]\n", argv[0]);
+        exit(1);
+    }
+
+    int sockfd, n;
+    struct sockaddr_in serv_addr;
+    char buffer[256];
+    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if (sockfd < 0)
+        error("ERROR opening socket");
+
+    bzero((char *) &serv_addr, sizeof(serv_addr));
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
+        error("ERROR invalid server address");
+
+    if (connect(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0)
+        error("ERROR connecting");
+
+    // Construct message
+    char message[256];
+    snprintf(message, sizeof(message), "%s %s", argv[2], argv[4]);
+
+    // Send message to paddock
+    n = write(sockfd, message, strlen(message));
+    if (n < 0)
+        error("ERROR writing to socket");
+
+    // Read response from paddock
+    bzero(buffer, 256);
+    n = read(sockfd, buffer, 255);
+    if (n < 0)
+        error("ERROR reading from socket");
+    printf("Response from paddock: %s\n", buffer);
+
+    close(sockfd);
+    return 0;
+}
+```
+
+`error` : igunakan untuk menampilkan pesan kesalahan dan keluar dari program dengan kode kesalahan.
+
+`main` : merupakan fungsi utama program, dimana fungsi ini memeriksa argumen baris perintah untuk memastikan format yang benar. Membuat socket, mengatur alamat server, dan melakukan koneksi ke server. Kemudian, membangun pesan yang akan dikirimkan ke server berdasarkan argumen baris perintah, mengirim pesan tersebut ke server, dan membaca respons dari server. Setelah itu, menutup koneksi dan keluar dari program.
+
+Setelah itu saya mengexcecuteable program `paddock.c` dengan mengggunakan command :
+```
+gcc paddock.c -o paddock
+```
+
+Dan juga menjalankan program tersebut dengan command :
+
+```
+./paddock
+```
+
+Nah, setelah itu kita bisa menjalankan program sesuai dengan masing-masing case yang diminta soal. Berikut saya sertakan dokumentasi untuk beberapa contoh pengerjaannya.
+
+![WhatsApp Image 2024-05-11 at 8 32 21 PM](https://github.com/revalina675/Sisop-3-2024-MH-IT20/assets/150936800/f00adde6-ab68-47e9-a336-9015a97cc8a8)
+
+Setelah itu, pada soal juga diperintahkan untuk menampilkan file.log yang dengan nama 'race.log'. Disini saya menggunakan command `cat race.log` untuk menampilkannya pada terminal.
+
+![WhatsApp Image 2024-05-11 at 8 34 51 PM](https://github.com/revalina675/Sisop-3-2024-MH-IT20/assets/150936800/8974af38-c762-4804-9615-d03bddd89610)
+
+4 baris terbawa adalah bukti untuk tampilan log pada dokumentasi sebelumnya.
+
 
 ## Soal 4
 
@@ -349,7 +702,6 @@ f. Karena Lewis juga ingin track anime yang ditambah, diubah, dan dihapus. Maka 
 g. Koneksi antara client dan server tidak akan terputus jika ada kesalahan input dari client, cuma terputus jika user mengirim pesan “exit”. Program exit dilakukan pada sisi client.
 
 h. Hasil akhir:
-
 soal_4/
     ├── change.log
     ├── client/
@@ -357,4 +709,5 @@ soal_4/
     ├── myanimelist.csv
     └── server/
         └── server.c
-## Jawab
+
+##Jawab
