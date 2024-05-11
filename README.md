@@ -1319,3 +1319,16 @@ wget https://drive.google.com/file/d/10p_kzuOgaFY3WT6FVPJIXFbkej2s9f50/view?usp=
 Berikut ini adalah isi dari file `myanimelist.csv`
 
 [gambar isi file csv]
+
+Langkah kedua adalah membuat file `client.c` 
+
+```
+implementasi code client.c
+```
+
+Setelah membuat file `client.c`, lalu membuat file `server.c`. Kedua file tersebut menggunakan socket agar dapat tehubung sehingga bisa berinteraksi.
+
+```
+implementasi code server.c
+```
+
