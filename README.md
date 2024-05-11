@@ -1318,7 +1318,9 @@ wget https://drive.google.com/file/d/10p_kzuOgaFY3WT6FVPJIXFbkej2s9f50/view?usp=
 
 Berikut ini adalah isi dari file `myanimelist.csv`
 
-[gambar isi file csv]
+
+![329801704-d6a9b8ce-22ea-4ea4-a6b8-9dbeb07663f1](https://github.com/revalina675/Sisop-3-2024-MH-IT20/assets/149811596/4d3d6b3b-49f8-4c0c-8712-c219c387e299)
+
 
 Langkah kedua adalah membuat file `client.c` 
 
