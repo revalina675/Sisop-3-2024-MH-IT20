@@ -30,3 +30,23 @@ e. Server digunakan untuk membaca myanimelist.csv. Dimana terjadi pengiriman dat
 - Melakukan edit anime berdasarkan judul
 - Melakukan delete berdasarkan judul
 - Selain command yang diberikan akan menampilkan tulisan “Invalid Command”
+
+f. Karena Lewis juga ingin track anime yang ditambah, diubah, dan dihapus. Maka dia membuat server dapat mencatat anime yang dihapus dalam sebuah log yang diberi nama change.log.
+
+- Format: [date] [type] [massage]
+- Type: ADD, EDIT, DEL
+- Ex:
+  1. [29/03/24] [ADD] Kanokari ditambahkan.
+  2. [29/03/24] [EDIT] Kamis,Comedy,Kanokari,completed diubah menjadi Jumat,Action,Naruto,completed.
+  3. [29/03/24] [DEL] Naruto berhasil dihapus.
+
+g. Koneksi antara client dan server tidak akan terputus jika ada kesalahan input dari client, cuma terputus jika user mengirim pesan “exit”. Program exit dilakukan pada sisi client.
+
+h. Hasil akhir:
+soal_4/
+    ├── change.log
+    ├── client/
+    │   └── client.c
+    ├── myanimelist.csv
+    └── server/
+        └── server.c
