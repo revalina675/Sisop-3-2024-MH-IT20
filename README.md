@@ -1323,12 +1323,253 @@ Berikut ini adalah isi dari file `myanimelist.csv`
 Langkah kedua adalah membuat file `client.c` 
 
 ```
-implementasi code client.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#define PORT 8080
+
+int main()
+{
+    int sock = 0, valread;
+    struct sockaddr_in serv_addr;
+    char buffer[1024] = {0};
+
+    //membuat socket untuk client
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("\n gagal membuat socket client \n");
+        return -1;
+    }
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+
+    //mengubah IP address dari string menjadi biner
+    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0)
+    {
+        printf("\nAddress tidak valid \n");
+        return -1;
+    }
+    //menghubungkan ke server
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        printf("\nKoneksi ke server gagal \n");
+        return -1;
+    }
+    while (1)
+    {
+        char input[1024];
+        printf("You: ");
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = '\0'; //menghapus newline pada input
+
+        //mengirim data ke server
+        send(sock, input, strlen(input), 0);
+
+        //menerima respon server
+        valread = read(sock, buffer, 1024);
+        printf("Server: %s\n", buffer);
+    }
+    return 0;
+}
 ```
 
 Setelah membuat file `client.c`, lalu membuat file `server.c`. Kedua file tersebut menggunakan socket agar dapat tehubung sehingga bisa berinteraksi.
 
 ```
-implementasi code server.c
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#define MAX_ROWS 100
+#define MAX_COLS 4
+#define MAX_LENGTH 60
+#define PORT 8080
+
+//membuat struct untuk menyimpan data anime dari file csv
+struct Anime
+{
+    char hari[MAX_LENGTH];
+    char genre[MAX_LENGTH];
+    char judul[MAX_LENGTH];
+    char status[MAX_LENGTH];
+};
+
+//baca file CSV dan mengisi array anime
+int readCSV(struct Anime anime[])
+{
+    FILE *file = fopen("myanimelist.csv", "r");
+    if (file == NULL)
+    {
+        printf("File gagal dibaca.\n");
+        return 0;
+    }
+
+    int row = 0;
+    char line[MAX_COLS * MAX_LENGTH];
+    while (fgets(line, sizeof(line), file) != NULL && row < MAX_ROWS)
+    {
+        char *token = strtok(line, ",");
+        int col = 0;
+        while (token != NULL && col < MAX_COLS)
+        {
+            switch (col)
+            {
+            case 0:
+                strcpy(anime[row].hari, token);
+                break;
+            case 1:
+                strcpy(anime[row].genre, token);
+                break;
+            case 2:
+                strcpy(anime[row].judul, token);
+                break;
+            case 3:
+                strcpy(anime[row].status, token);
+                break;
+            }
+            token = strtok(NULL, ",");
+            col++;
+        }
+        row++;
+    }
+    fclose(file);
+    return row;
+}
+
+//cari anime berdasarkan hari
+void searchDay(struct Anime anime[], int count, char day[])
+{
+    printf("Server:\n");
+    for (int i = 0; i < count; i++)
+    {
+        if (strcmp(anime[i].hari, day) == 0)
+        {
+            printf("%d. %s\n", i + 1, anime[i].judul);
+        }
+    }
+}
+
+//cari anime dari genre
+void searchGenre(struct Anime anime[], int count, char genre[])
+{
+    printf("Server:\n");
+    for (int i = 0; i < count; i++)
+    {
+        if (strcmp(anime[i].genre, genre) == 0)
+        {
+            printf("%d. %s\n", i + 1, anime[i].judul);
+        }
+    }
+}
+
+//cari anime dari status
+void searchStatus(struct Anime anime[], int count, char status[])
+{
+    printf("Server:\n");
+    for (int i = 0; i < count; i++)
+    {
+        if (strcmp(anime[i].status, status) == 0)
+        {
+            printf("%d. %s\n", i + 1, anime[i].judul);
+        }
+    }
+}
+
+int main()
+{
+    //membuat socket server
+    int server_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (server_socket == -1)
+    {
+        printf("Error: Kesalahan membuat socket.\n");
+        return 1;
+    }
+
+    //membuat struct untuk alamat server
+    struct sockaddr_in server_address;
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(PORT);
+    server_address.sin_addr.s_addr = INADDR_ANY;
+
+    //socket dihubungkan dengan alamat server
+    if (bind(server_socket, (struct sockaddr *)&server_address, sizeof(server_address)) < 0)
+    {
+        printf("Error: Gagal mengikat socket ke alamat server.\n");
+        return 1;
+    }
+
+    //server mendeteksi koneksi yang dari client, dibatasi 5 koneksi
+    if (listen(server_socket, 5) < 0)
+    {
+        printf("Error: Gagal listen koneksi dari client.\n");
+        return 1;
+    }
+    printf("Server: Menunggu koneksi...\n");
+
+    // Server menerima koneksi yang masuk
+    int client_socket = accept(server_socket, NULL, NULL);
+    if (client_socket < 0)
+    {
+        printf("Error: Gagal menerima koneksi.\n");
+        return 1;
+    }
+
+    //inisialisasi array anime
+    struct Anime anime[MAX_ROWS];
+    int count = readCSV(anime);
+    if (count == 0)
+    {
+        return 1;
+    }
+
+    char input[100];
+    while (1)
+    {
+        printf("Received: ");
+        fgets(input, sizeof(input), stdin);
+        input[strcspn(input, "\n")] = '\0'; // Newline pada input dihapus
+        char *token = strtok(input, " ");
+        if (token != NULL)
+        {
+            if (strcmp(token, "tampilkan") == 0)
+            {
+                token = strtok(NULL, " ");
+                if (token != NULL)
+                {
+                    if (strcmp(token, "hari") == 0)
+                    {
+                        token = strtok(NULL, " ");
+                        if (token != NULL)
+                        {
+                            searchDay(anime, count, token);
+                        }
+                    }
+                    else if (strcmp(token, "genre") == 0)
+                    {
+                        token = strtok(NULL, " ");
+                        if (token != NULL)
+                        {
+                            searchGenre(anime, count, token);
+                        }
+                    }
+                    else if (strcmp(token, "status") == 0)
+                    {
+                        token = strtok(NULL, " ");
+                        if (token != NULL)
+                        {
+                            searchStatus(anime, count, token);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return 0;
+}
 ```
 
