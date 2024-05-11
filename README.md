@@ -1575,3 +1575,26 @@ int main()
 }
 ```
 
+Setelah kedua file berhasil dibuat. Selanjutnya adalah melakukan kompilasi pada masing masing file
+
+```
+gcc server.c -o server
+gcc client.c -o client
+```
+
+Menjalankan kedua file.
+
+```
+./server
+```
+
+```
+./client
+```
+
+Berikut ini adalah output yang saya dapatkan
+
+![329801707-d7149207-8088-4422-a04c-58f9e0b5aebf](https://github.com/revalina675/Sisop-3-2024-MH-IT20/assets/149811596/fa3d4198-71d2-44e4-947c-35792481bcea)
+
+
+![329801709-543863c4-1d6e-41e3-adf2-786ad279b590](https://github.com/revalina675/Sisop-3-2024-MH-IT20/assets/149811596/f61b326f-850e-4716-9e97-1af1406ead3b)
