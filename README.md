@@ -1,4 +1,4 @@
-# PRAKTIKUM MODUL 02 SISTEM OPERASI
+# PRAKTIKUM MODUL 03 SISTEM OPERASI
 ## Kelompok IT20
 ### Anggota Kelompok :
 |             Nama              |     NRP    |
