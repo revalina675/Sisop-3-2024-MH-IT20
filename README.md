@@ -704,12 +704,17 @@ g. Koneksi antara client dan server tidak akan terputus jika ada kesalahan input
 h. Hasil akhir:
 
 soal_4/
-.		.
+.
     ├── change.log
+.    
     ├── client/
+.    
     │   └── client.c
+.    
     ├── myanimelist.csv
+.    
     └── server/
+.    
         └── server.c
 
 ## Jawab
